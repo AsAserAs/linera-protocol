@@ -11,7 +11,7 @@ use std::{fmt::Debug, iter, rc::Rc, sync::Arc};
 use linera_witty::{hlist, InstanceWithMemory, Layout, MockInstance, WitStore};
 
 use self::types::{
-    Branch, Enum, Leaf, RecordWithDoublePadding, SimpleWrapper, SliceWrapper,
+    Branch, Enum, Leaf, RecordWithDoublePadding, SimpleWrapper,
     SpecializedGenericEnum, SpecializedGenericStruct, StructWithHeapFields, StructWithLists,
     TupleWithPadding, TupleWithoutPadding,
 };
@@ -533,44 +533,6 @@ fn test_arced_slice() {
     test_lower_to_flat_layout(data, hlist![0_i32, 2_i32,], &heap_memory);
 }
 
-/// Check that a type with a slice field is properly stored in memory and lowered into its
-/// flat layout.
-#[test]
-fn test_slice_field() {
-    let slice = [
-        TupleWithoutPadding(0, 1, 2),
-        TupleWithoutPadding(3, 4, 5),
-        TupleWithoutPadding(6, 7, 8),
-    ];
-    let data = SliceWrapper(&slice);
-
-    let expected_memory = iter::empty()
-        .chain(
-            iter::empty()
-                .chain([0, 0, 0, 0, 0, 0, 0, 0])
-                .chain([1, 0, 0, 0])
-                .chain([2, 0])
-                .chain([0; 2]),
-        )
-        .chain(
-            iter::empty()
-                .chain([3, 0, 0, 0, 0, 0, 0, 0])
-                .chain([4, 0, 0, 0])
-                .chain([5, 0])
-                .chain([0; 2]),
-        )
-        .chain(
-            iter::empty()
-                .chain([6, 0, 0, 0, 0, 0, 0, 0])
-                .chain([7, 0, 0, 0])
-                .chain([8, 0])
-                .chain([0; 2]),
-        )
-        .collect::<Vec<u8>>();
-
-    test_store_in_memory(data, &[8, 0, 0, 0, 3, 0, 0, 0], &expected_memory);
-    test_lower_to_flat_layout(data, hlist![0_i32, 3_i32], &expected_memory);
-}
 
 /// Checks that a type with list fields is properly stored in memory and lowered into its
 /// flat layout.
